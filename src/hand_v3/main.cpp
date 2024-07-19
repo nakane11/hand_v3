@@ -1,6 +1,22 @@
 #include <M5AtomS3.h>
 #include <IcsHardSerialClass.h>
 #include <SBUS.h>
+#include <WiFi.h>
+#include <WiFiHardware.h>
+#include <ros.h>
+#include <std_msgs/Int8.h>
+
+// === WiFi === //
+const char SSID[] = "xxxxxxxxxxxx";
+const char PASSWORD[] = "xxxxxxxxxxxxx";
+
+// === ROS === //
+// Node Handler
+ros::NodeHandle_<WiFiHardware> nh;
+
+// Publisher
+std_msgs::Int8 sample_msg;
+ros::Publisher sample_pub("sample_pub", &sample_msg);
 
 // === Servo === //
 const byte EN_PIN = 6;
@@ -32,7 +48,30 @@ void setup()
   Serial1.begin(BAUDRATE, SERIAL_8E1, RX_PIN, TX_PIN, false, TIMEOUT);
   krs.begin();
   // === Futaba === //
-  sbus.begin();  
+  sbus.begin();
+
+   // === WiFi === //
+  M5.Lcd.clear();
+  M5.Lcd.setCursor(0, 0);
+  M5.Lcd.print("WiFi Connecting ...");
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(SSID, PASSWORD);
+  while (WiFi.status() != WL_CONNECTED)
+    delay(10);
+
+  // === ROS === //
+  M5.Lcd.clear();
+  M5.Lcd.setCursor(0, 0);
+  M5.Lcd.print("ROS Connecting ...");
+  do { M5.update(); delay(10); } while (!M5.BtnA.isPressed());
+  nh.initNode();
+  nh.advertise(sample_pub);
+  while(!nh.connected())
+  {
+    nh.spinOnce();
+    delay(10);
+  }
+  M5.Lcd.print("ROS Connected");
 }
 
 int prevId = -1;
@@ -40,127 +79,147 @@ int prevId = -1;
 
 void loop()
 {
-  M5.Lcd.print("3");
   M5.update();  //本体ボタン状態更新
 
-  int reId = krs.getID();
-  if (prevId != reId) {
-    M5.Lcd.clear();
-    M5.Lcd.setCursor(0, 0);
-    char log_msg[50];
-    sprintf(log_msg, "ID: %d", reId);
-    M5.Lcd.println(log_msg);
-    prevId = reId;
+  if (WiFi.status() != WL_CONNECTED)
+  {
+    nh.spinOnce();
+    nh.logerror("No WiFi");
+    delay(10);
+    return;
   }
 
-    // M5.Lcd.clear();
-    // M5.Lcd.setCursor(0, 0);
-    std::vector<int> ids;
-    for (int i = 0; i < 18; ++i) {
-      int pos = krs.getPos(i);
-      // M5.Lcd.print(pos);
-      // M5.Lcd.print(' ' );
-      if (pos != -1) {
-        ids.push_back(i);
-      }
-    }
-    // char log_msg[50];
-    // sprintf(log_msg, "ID: %d", reId);
-      // M5.Lcd.println(log_msg);
-    M5.Lcd.clear();
-    M5.Lcd.setCursor(0, 0);
-    M5.Lcd.print('t');
-    M5.Lcd.print(' ');    
-    for (size_t i = 0; i < ids.size(); ++i) {
-      M5.Lcd.print(ids[i]);
-      M5.Lcd.print(' ');
-    }
+  // Check ROS connection.
+  if (!nh.connected())
+  {
+    nh.spinOnce();
+    nh.logwarn("No ROS");
+    delay(10);
+    return;
+  }
 
-    for (int i=9500;i>=5500;i-=10){
-      krs.setPos(0,i);
-      delay(3);
-    }
-    for (int i=5500;i<=9500;i+=10){
-      krs.setPos(0,i);
-      delay(3);
-    }
+  sample_msg.data = 1;
+  sample_pub.publish(&sample_msg);
+  nh.spinOnce();
   
-    float pos = 0;
-  for (pos = 60; pos >= -30; pos -= 1) { 
-    sbus.setServoAngle(1,pos);
-    sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
+  // int reId = krs.getID();
+//   if (prevId != reId) {
+//     M5.Lcd.clear();
+//     M5.Lcd.setCursor(0, 0);
+//     char log_msg[50];
+//     sprintf(log_msg, "ID: %d", reId);
+//     M5.Lcd.println(log_msg);
+//     prevId = reId;
+//   }
 
-// little finger
-  for (pos = 60; pos >= -30; pos -= 1) { 
-    sbus.setServoAngle(1,pos);
-    sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
-  for (pos = -30; pos <= 60; pos += 1) {
-    sbus.setServoAngle(1,pos);
-    sbus.sendSbusData();             // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
+//     // M5.Lcd.clear();
+//     // M5.Lcd.setCursor(0, 0);
+//     std::vector<int> ids;
+//     for (int i = 0; i < 18; ++i) {
+//       int pos = krs.getPos(i);
+//       // M5.Lcd.print(pos);
+//       // M5.Lcd.print(' ' );
+//       if (pos != -1) {
+//         ids.push_back(i);
+//       }
+//     }
+//     // char log_msg[50];
+//     // sprintf(log_msg, "ID: %d", reId);
+//       // M5.Lcd.println(log_msg);
+//     M5.Lcd.clear();
+//     M5.Lcd.setCursor(0, 0);
+//     M5.Lcd.print('t');
+//     M5.Lcd.print(' ');    
+//     for (size_t i = 0; i < ids.size(); ++i) {
+//       M5.Lcd.print(ids[i]);
+//       M5.Lcd.print(' ');
+//     }
+
+//     for (int i=9500;i>=5500;i-=10){
+//       krs.setPos(0,i);
+//       delay(3);
+//     }
+//     for (int i=5500;i<=9500;i+=10){
+//       krs.setPos(0,i);
+//       delay(3);
+//     }
   
-  // ring finger
-  for (pos = -60; pos <= 40; pos += 1) { 
-    sbus.setServoAngle(2,pos);
-    sbus.sendSbusData();             // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
-  for (pos = 40; pos >= -60; pos -= 1) {
-    sbus.setServoAngle(2,pos);
-    sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
+//     float pos = 0;
+//   for (pos = 60; pos >= -30; pos -= 1) { 
+//     sbus.setServoAngle(1,pos);
+//     sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
 
-  // middle finger
-  for (pos = 60; pos >= -30; pos -= 1) {
-    sbus.setServoAngle(4,pos);
-    sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
-  for (pos = -30; pos <= 60; pos += 1) {
-    sbus.setServoAngle(4,pos);
-    sbus.sendSbusData();             // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
+// // little finger
+//   for (pos = 60; pos >= -30; pos -= 1) { 
+//     sbus.setServoAngle(1,pos);
+//     sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
+//   for (pos = -30; pos <= 60; pos += 1) {
+//     sbus.setServoAngle(1,pos);
+//     sbus.sendSbusData();             // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
   
-  // index finger
-  for (pos = -60; pos <= 40; pos += 1) { 
-    sbus.setServoAngle(3,pos);
-    sbus.sendSbusData();             // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
-  for (pos = 40; pos >= -60; pos -= 1) {
-    sbus.setServoAngle(3,pos);
-    sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
+//   // ring finger
+//   for (pos = -60; pos <= 40; pos += 1) { 
+//     sbus.setServoAngle(2,pos);
+//     sbus.sendSbusData();             // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
+//   for (pos = 40; pos >= -60; pos -= 1) {
+//     sbus.setServoAngle(2,pos);
+//     sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
 
-  //thumb
-  for (pos = -60; pos <= 50; pos += 1) {
-    sbus.setServoAngle(0,pos);
-    sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
-  for (pos = 50; pos >= -60; pos -= 1) { 
-    sbus.setServoAngle(0,pos);
-    sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
-  for (pos = -60; pos <= 60; pos += 1) { 
-    sbus.setServoAngle(5,pos);
-    sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }
-  for (pos = 60; pos >= -60; pos -= 1) { 
-    sbus.setServoAngle(5,pos);
-    sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
-    delay(5);                       // waits 15 ms for the servo to reach the position
-  }    
+//   // middle finger
+//   for (pos = 60; pos >= -30; pos -= 1) {
+//     sbus.setServoAngle(4,pos);
+//     sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
+//   for (pos = -30; pos <= 60; pos += 1) {
+//     sbus.setServoAngle(4,pos);
+//     sbus.sendSbusData();             // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
+  
+//   // index finger
+//   for (pos = -60; pos <= 40; pos += 1) { 
+//     sbus.setServoAngle(3,pos);
+//     sbus.sendSbusData();             // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
+//   for (pos = 40; pos >= -60; pos -= 1) {
+//     sbus.setServoAngle(3,pos);
+//     sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
+
+//   //thumb
+//   for (pos = -60; pos <= 50; pos += 1) {
+//     sbus.setServoAngle(0,pos);
+//     sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
+//   for (pos = 50; pos >= -60; pos -= 1) { 
+//     sbus.setServoAngle(0,pos);
+//     sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
+//   for (pos = -60; pos <= 60; pos += 1) { 
+//     sbus.setServoAngle(5,pos);
+//     sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }
+//   for (pos = 60; pos >= -60; pos -= 1) { 
+//     sbus.setServoAngle(5,pos);
+//     sbus.sendSbusData();              // tell servo to go to position in variable 'pos'
+//     delay(5);                       // waits 15 ms for the servo to reach the position
+//   }    
   // M5.Lcd.clear();
   // M5.Lcd.setCursor(0, 0);
   // std::vector<int> servo_ids = krs.search_servo_ids();
