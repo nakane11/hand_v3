@@ -1,2 +1,2 @@
-.pio
-lib/ros_lib/*
+pio/hand_v3/lib/ros_lib/*
+pio/hand_v3/.pio/*
