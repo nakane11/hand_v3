@@ -44,7 +44,7 @@ void receiveKondoCommandAngle(const hand_v3::RawAngle &msg)
   int length = msg.length;
   for (int i=0;i<length;i++){
     krs.setPos(msg.id[i], msg.angle[i]);
-    delay(3);
+    delay(1);
   }
 }
 void receiveKondoCommandSpeed(const hand_v3::RawAngle &msg)
