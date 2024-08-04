@@ -7,8 +7,8 @@
 #include <hand_v3/RawAngle.h>
 
 // === WiFi === //
-const char SSID[] ="ist-hsr-2.4g";
-const char PASSWORD[] = "89sk389sk3";
+const char SSID[] ="xxxxxx";
+const char PASSWORD[] = "xxxxxx";
 
 // === Servo === //
 const byte EN_PIN = 6;
