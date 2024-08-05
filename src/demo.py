@@ -131,7 +131,7 @@ def beckoning_demo():
 
 def init_to_peace_pose():
     kondo_msg = RawAngle()
-    kondo_msg.angle = [5500]
+    kondo_msg.angle = [5000]
     kondo_msg.id = [0]
     kondo_msg.length = 1
     kondo_angle_pub.publish(kondo_msg)
@@ -259,6 +259,32 @@ def init_to_rock_pose():
         i += 1
         time.sleep(0.01)
 
+def rock_to_open_pose():
+    kondo_msg = RawAngle()
+    kondo_msg.angle = [5000]
+    kondo_msg.id = [0]
+    kondo_msg.length = 1
+    kondo_angle_pub.publish(kondo_msg)
+
+    for i in range(90):
+        futaba_msg = RawAngle()
+        futaba_msg.angle = [-30+i,40-i,-30+i,30-i]
+        futaba_msg.id = [1,2,4,3]
+        futaba_msg.length = 4
+        futaba_angle_pub.publish(futaba_msg)
+        i += 1
+        time.sleep(0.01)
+
+    i = 20
+    while i >= -60:
+        futaba_msg = RawAngle()
+        futaba_msg.angle = [i,i]
+        futaba_msg.id = [0,5]
+        futaba_msg.length = 2
+        futaba_angle_pub.publish(futaba_msg)
+        time.sleep(0.01)
+        i -= 1
+
 def jyanken():
     kondo_msg = RawAngle()
     kondo_msg.angle = [5000]
@@ -281,3 +307,25 @@ def jyanken():
         kondo_msg.length = 1
         kondo_angle_pub.publish(kondo_msg)
         time.sleep(0.8)
+
+    rock_to_open_pose()
+
+def shakehand_pose():
+    i = -60
+    while i < 0:
+        futaba_msg = RawAngle()
+        futaba_msg.angle = [i,i]
+        futaba_msg.id = [0,5]
+        futaba_msg.length = 2
+        futaba_angle_pub.publish(futaba_msg)
+        time.sleep(0.01)
+        i += 1
+
+    for i in range(60):
+        futaba_msg = RawAngle()
+        futaba_msg.angle = [60-i,-50+i,60-i,-60+i]
+        futaba_msg.id = [1,2,4,3]
+        futaba_msg.length = 4
+        futaba_angle_pub.publish(futaba_msg)
+        i += 1
+        time.sleep(0.01)
