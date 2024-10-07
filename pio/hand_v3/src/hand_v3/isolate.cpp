@@ -84,7 +84,6 @@ const byte RX_PIN = 5;
 const byte TX_PIN = 38;
 const long BAUDRATE = 1250000;
 const int TIMEOUT = 20;
-const byte KRS_ID = 6;
 IcsHardSerialClass krs(&Serial1, EN_PIN, BAUDRATE, TIMEOUT);
 
 // === FUTABA Servo === //
@@ -92,6 +91,15 @@ const byte RX_PIN_FUTABA = 10;
 const byte TX_PIN_FUTABA = 39;
 const long BAUDRATE_FUTABA = 100000;
 SBUS sbus(&Serial2, RX_PIN_FUTABA, TX_PIN_FUTABA, BAUDRATE_FUTABA);
+
+#define NUM_SERVOS 11
+int targetAngles[NUM_SERVOS];    // 目標角度
+int currentAngles[NUM_SERVOS];   // 現在の角度
+float totalTime[NUM_SERVOS]; // 各サーボごとの動作時間
+float startTime[NUM_SERVOS]; // 各サーボの動作開始時間
+bool updateCompleteFlag = true;  // 更新完了フラグ
+// const float alpha = 0.01; // 目標角度に対する重み
+// const float dt = 0.1; // タイムステップ (秒)
 
 void reset_arm()
 {
@@ -151,12 +159,131 @@ void open_to_init_hand(){
   }
 }
 
-// void init_to_rock_hand(){
-  
-// }
+void test(){
+  targetAngles[1] = 0;
+  totalTime[1] = 2.0;
+  startTime[1] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }
+  targetAngles[1] = 60;
+  totalTime[1] = 2.0;
+  startTime[1] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }
+  M5.Lcd.println("test end");
+}
+
+void initialize_servo(){
+  //futaba 初期姿勢をcurrentangleとtargetangleに入れてsmoothingせずに送る
+  currentAngles[1] = 60;
+  currentAngles[2] = -60;
+  currentAngles[4] = 60;
+  currentAngles[3] = -60;
+  currentAngles[0] = -60;
+  currentAngles[5] = -60;
+  for (int i = 0; i < 6; i++) {
+    targetAngles[i] = currentAngles[i];
+    sbus.setServoAngle(i,currentAngles[i]);
+  }
+  sbus.begin();
+  sbus.sendSbusData();
+  //kondo 現在角を読んでcurrentangleとtargetangleに入れる
+  for (int i = 6; i < NUM_SERVOS; i++) {
+    int pos = krs.getPos(i-6);
+    currentAngles[i] = pos;
+    targetAngles[i] = pos;
+  }
+}
+
+
+void smoothUpdate(void *parameter) {
+  // static float velocity[NUM_SERVOS] = {0}; // 各サーボの速度
+  // static float acceleration[NUM_SERVOS] = {0}; // 各サーボの加速度
+  while(true){
+    if(updateCompleteFlag){
+      delay(1);
+      continue;
+    }
+    bool allServosUpdated = true; // 全てのサーボの更新が完了したか確認するためのフラグ
+
+    for (int i = 0; i < 6; i++) {
+      if(abs(targetAngles[i] - currentAngles[i]) < 1){
+        delay(1);
+        continue;
+      }
+      float t = (millis() / 1000.0) - startTime[i]; // 経過時間 (秒)
+      if (t >= totalTime[i]) {
+        // 目標に到達した場合は、最終角度に設定
+        currentAngles[i] = targetAngles[i];
+        sbus.setServoAngle(i, currentAngles[i]);
+      } else {
+        float T = totalTime[i];
+        float tau = t / T;
+        float tau3 = tau * tau * tau;
+        float tau4 = tau3 * tau;
+        float tau5 = tau4 * tau;
+        currentAngles[i] = currentAngles[i] + (targetAngles[i] - currentAngles[i]) *
+          (10 * tau3 - 15 * tau4 + 6 * tau5);
+        sbus.setServoAngle(i, currentAngles[i]);
+        allServosUpdated = false;
+        M5.Lcd.clear();
+        M5.Lcd.setCursor(0,0);
+        M5.Lcd.print(currentAngles[i]);
+      }
+    }
+    if (!allServosUpdated) {
+      sbus.sendSbusData();
+      delay(3);
+    }
+    for (int i = 6; i < NUM_SERVOS; i++) {
+      if(abs(targetAngles[i] - currentAngles[i]) < 1){
+        delay(1);
+        continue;
+      }
+      float t = (millis() / 1000.0) - startTime[i]; // 経過時間 (秒)
+      if (t >= totalTime[i]) {
+        // 目標に到達した場合は、最終角度に設定
+        currentAngles[i] = targetAngles[i];
+        krs.setPos(i-6, currentAngles[i]);
+      } else {
+        float T = totalTime[i];
+        float tau = t / T;
+        float tau3 = tau * tau * tau;
+        float tau4 = tau3 * tau;
+        float tau5 = tau4 * tau;
+        currentAngles[i] = currentAngles[i] + (targetAngles[i] - currentAngles[i]) *
+          (10 * tau3 - 15 * tau4 + 6 * tau5);
+        M5.Lcd.clear();
+        M5.Lcd.setCursor(0,0);
+        M5.Lcd.print(currentAngles[i]);
+        krs.setPos(i-6, currentAngles[i]);
+        allServosUpdated = false;
+        // USBSerial.println(currentAngles[i]);
+      }
+    }
+    // USBSerial.print(" ");
+    // USBSerial.println(targetAngles[i]);
+    // 全てのサーボの更新が完了した場合
+    if (allServosUpdated) {
+      updateCompleteFlag = true; // 更新完了フラグを立てる
+    }
+    delay(2);
+  }
+}
 
 void setup()
 {
+  USBSerial.begin();
   // === ATOMS3 === //
   M5.begin();
   M5.Lcd.setRotation(3);  // 画面向き設定（USB位置基準 0：下/ 1：右/ 2：上/ 3：左）
@@ -172,19 +299,10 @@ void setup()
   for(int i=1;i<5;i++){
     krs.setSpd(i,80);
   }
-
-  sbus.setServoAngle(1,60);
-  sbus.setServoAngle(2,-60);
-  sbus.setServoAngle(4,60);
-  sbus.setServoAngle(3,-60);
-  sbus.setServoAngle(0,-60);
-  sbus.setServoAngle(5,-60);
-  sbus.begin();
-
+  initialize_servo();
+  xTaskCreatePinnedToCore(smoothUpdate, "Smooth Update", 2048, NULL, 20, NULL, 0);
   xTaskCreatePinnedToCore(ButtonTask, "Button Task", 2048, NULL, 24, NULL, 1);
 }
-
-int prevId = -1;
 
 
 void loop()
@@ -201,12 +319,12 @@ void loop()
       ids.push_back(i);
     }
   }
-  M5.Lcd.clear();
-  M5.Lcd.setCursor(0, 0);
-  for (size_t i = 0; i < ids.size(); ++i) {
-    M5.Lcd.print(ids[i]);
-    M5.Lcd.print(' ');
-  }
+  // M5.Lcd.clear();
+  // M5.Lcd.setCursor(0, 0);
+  // for (size_t i = 0; i < ids.size(); ++i) {
+  //   M5.Lcd.print(ids[i]);
+  //   M5.Lcd.print(' ');
+  // }
 
   if(currentButtonState==PRESSED){
     if(currentServoState==FREE){
@@ -215,62 +333,13 @@ void loop()
       free_arm();
     }
   }else if(currentButtonState==SINGLE_CLICK){
-    reset_arm();
+    test();
+    // reset_arm();
   }else if(currentButtonState==DOUBLE_CLICK){
     init_to_open_hand();
     wave_arm();
     open_to_init_hand();
   }
   currentButtonState = NOT_CHANGED;
-
   delay(100);
-
-  // for (size_t i = 0; i < servo_ids.size(); ++i) {
-  //   M5.Lcd.print(servo_ids[i]);
-  //   M5.Lcd.print(' ');
-  // }
-
-  // // === Push   ：Rotates to 90deg === //
-  // // === Release：Rotates to  0deg === //
-  // if(M5.Btn.isPressed())
-  // {
-  //   if(pos != krs.degPos(90))
-  //   {
-  //     pos = krs.degPos(90);
-  //     int s = krs.setPos(KRS_ID, pos);
-  //     if(s == -1)
-  //     {
-  //       M5.Lcd.clear();
-  //       M5.Lcd.setCursor(0, 0);
-  //       M5.Lcd.print("Failed to send data.");
-  //     }
-  //     else
-  //     {
-  //       M5.Lcd.clear();
-  //       M5.Lcd.setCursor(0, 0);
-  //       M5.Lcd.print("Succeed to send data.");
-  //     }
-  //   }
-  // }
-
-  // else if(M5.Btn.isReleased())
-  // {
-  //   if(pos != krs.degPos(0))
-  //   {
-  //     pos = krs.degPos(0);
-  //     int s = krs.setPos(KRS_ID, pos);
-  //     if(s == -1)
-  //     {
-  //       M5.Lcd.clear();
-  //       M5.Lcd.setCursor(0, 0);
-  //       M5.Lcd.print("Failed to send data.");
-  //     }
-  //     else
-  //     {
-  //       M5.Lcd.clear();
-  //       M5.Lcd.setCursor(0, 0);
-  //       M5.Lcd.print("Succeed to send data.");
-  //     }
-  //   }
-  // }
 }
