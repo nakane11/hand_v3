@@ -147,22 +147,22 @@ void wave_arm()
   currentServoState = HOLD;
 }
 
-void init_to_open_hand(){
-  for(int i=9500;i>4900;i=i-1){
-    krs.setPos(0,i);
-  }
-}
-
-void open_to_init_hand(){
-  for(int i=4900;i<=9500;i=i+1){
-    krs.setPos(0,i);
-  }
-}
-
-void test(){
-  targetAngles[1] = 0;
-  totalTime[1] = 2.0;
-  startTime[1] = millis() / 1000.0;
+void init_arm_downward(){
+  targetAngles[6] = 9500;
+  totalTime[6] = 2.0;
+  startTime[6] = millis() / 1000.0;  
+  targetAngles[7] = 7500;
+  totalTime[7] = 2.0;
+  startTime[7] = millis() / 1000.0;
+  targetAngles[8] = 7500;
+  totalTime[8] = 2.0;
+  startTime[8] = millis() / 1000.0;  
+  targetAngles[9] = 7500;
+  totalTime[9] = 2.0;
+  startTime[9] = millis() / 1000.0;  
+  targetAngles[10] = 4833;
+  totalTime[10] = 2.0;
+  startTime[10] = millis() / 1000.0;
   updateCompleteFlag = false;
   while (true){
     if(updateCompleteFlag)
@@ -170,9 +170,386 @@ void test(){
     else
       delay(5);
   }
+}
+
+void grip_hold_arm(){
+  targetAngles[7] = 9000;
+  totalTime[7] = 2.0;
+  startTime[7] = millis() / 1000.0;    
+  targetAngles[9] = 10167;
+  totalTime[9] = 2.0;
+  startTime[9] = millis() / 1000.0;    
+  targetAngles[10] = 6000;
+  totalTime[10] = 2.0;
+  startTime[10] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }  
+}
+
+void hooked_hold_arm(){
+  targetAngles[9] = 8500;
+  totalTime[9] = 2.0;
+  startTime[9] = millis() / 1000.0;    
+  targetAngles[10] = 6000;
+  totalTime[10] = 2.0;
+  startTime[10] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }  
+}
+
+void interlocked_fingers_arm(){
+  targetAngles[6] = 5000;
+  totalTime[6] = 2.0;
+  startTime[6] = millis() / 1000.0;  
+  targetAngles[10] = 6000;
+  totalTime[10] = 2.0;
+  startTime[10] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }  
+}
+
+void toddler_hold_arm(){
+  targetAngles[3] = -10;
+  totalTime[3] = 2.0;
+  startTime[3] = millis() / 1000.0;
+  targetAngles[7] = 9000;
+  totalTime[7] = 2.0;
+  startTime[7] = millis() / 1000.0;    
+  targetAngles[9] = 10167;
+  totalTime[9] = 2.0;
+  startTime[9] = millis() / 1000.0;    
+  targetAngles[10] = 6000;
+  totalTime[10] = 2.0;
+  startTime[10] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }  
+}
+
+void init_to_hooked(){
+  targetAngles[1] = -30;
+  totalTime[1] = 2.0;
+  startTime[1] = millis() / 1000.0;
+  targetAngles[2] = 35;
+  totalTime[2] = 2.0;
+  startTime[2] = millis() / 1000.0;
+  targetAngles[4] = -35;
+  totalTime[4] = 2.0;
+  startTime[4] = millis() / 1000.0;
+  targetAngles[3] = 30;
+  totalTime[3] = 2.0;
+  startTime[3] = millis() / 1000.0;
+
+  targetAngles[0] = -30;
+  totalTime[0] = 2.0;
+  startTime[0] = millis() / 1000.0;
+  targetAngles[5] = 30;
+  totalTime[5] = 2.0;
+  startTime[5] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }
+  M5.Lcd.println("test end");
+}
+
+void hooked_to_init(){
   targetAngles[1] = 60;
   totalTime[1] = 2.0;
   startTime[1] = millis() / 1000.0;
+  targetAngles[2] = -60;
+  totalTime[2] = 2.0;
+  startTime[2] = millis() / 1000.0;
+  targetAngles[4] = 60;
+  totalTime[4] = 2.0;
+  startTime[4] = millis() / 1000.0;
+  targetAngles[3] = -60;
+  totalTime[3] = 2.0;
+  startTime[3] = millis() / 1000.0;
+
+  targetAngles[0] = -60;
+  totalTime[0] = 2.0;
+  startTime[0] = millis() / 1000.0;
+  targetAngles[5] = -60;
+  totalTime[5] = 2.0;
+  startTime[5] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }
+  M5.Lcd.println("test end");  
+}
+
+void init_to_grip(){
+  targetAngles[1] = -30;
+  totalTime[1] = 2.0;
+  startTime[1] = millis() / 1000.0;
+  targetAngles[2] = 35;
+  totalTime[2] = 2.0;
+  startTime[2] = millis() / 1000.0;
+  targetAngles[4] = -35;
+  totalTime[4] = 2.0;
+  startTime[4] = millis() / 1000.0;
+  targetAngles[3] = 30;
+  totalTime[3] = 2.0;
+  startTime[3] = millis() / 1000.0;
+
+  targetAngles[0] = 5;
+  totalTime[0] = 2.0;
+  startTime[0] = millis() / 1000.0;
+  targetAngles[5] = 20;
+  totalTime[5] = 2.0;
+  startTime[5] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }
+  M5.Lcd.println("test end");
+}
+
+void grip_to_init(){
+  targetAngles[1] = 60;
+  totalTime[1] = 2.0;
+  startTime[1] = millis() / 1000.0;
+  targetAngles[2] = -60;
+  totalTime[2] = 2.0;
+  startTime[2] = millis() / 1000.0;
+  targetAngles[4] = 60;
+  totalTime[4] = 2.0;
+  startTime[4] = millis() / 1000.0;
+  targetAngles[3] = -60;
+  totalTime[3] = 2.0;
+  startTime[3] = millis() / 1000.0;
+
+  targetAngles[0] = -60;
+  totalTime[0] = 2.0;
+  startTime[0] = millis() / 1000.0;
+  targetAngles[5] = -60;
+  totalTime[5] = 2.0;
+  startTime[5] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }
+  M5.Lcd.println("test end");  
+}
+
+void init_to_interlocked(){
+  targetAngles[6] = 4600;
+  totalTime[6] = 2.0;
+  startTime[6] = millis() / 1000.0;  
+  targetAngles[1] = -30;
+  totalTime[1] = 3.0;
+  startTime[1] = millis() / 1000.0;
+  targetAngles[2] = 35;
+  totalTime[2] = 3.0;
+  startTime[2] = millis() / 1000.0;
+  targetAngles[4] = -35;
+  totalTime[4] = .0;
+  startTime[4] = millis() / 1000.0;
+  targetAngles[3] = 30;
+  totalTime[3] = 3.0;
+  startTime[3] = millis() / 1000.0;
+
+  targetAngles[0] = -30;
+  totalTime[0] = 3.0;
+  startTime[0] = millis() / 1000.0;
+  targetAngles[5] = 30;
+  totalTime[5] = 3.0;
+  startTime[5] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }
+}
+
+void interlocked_to_init(){
+  targetAngles[1] = 60;
+  totalTime[1] = 2.0;
+  startTime[1] = millis() / 1000.0;
+  targetAngles[2] = -60;
+  totalTime[2] = 2.0;
+  startTime[2] = millis() / 1000.0;
+  targetAngles[4] = 60;
+  totalTime[4] = 2.0;
+  startTime[4] = millis() / 1000.0;
+  targetAngles[3] = -60;
+  totalTime[3] = 2.0;
+  startTime[3] = millis() / 1000.0;
+
+  targetAngles[0] = -60;
+  totalTime[0] = 2.0;
+  startTime[0] = millis() / 1000.0;
+  targetAngles[5] = -60;
+  totalTime[5] = 2.0;
+  startTime[5] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }
+}
+
+void init_to_toddler(){
+  targetAngles[6] = 4600;
+  totalTime[6] = 2.0;
+  startTime[6] = millis() / 1000.0;  
+  targetAngles[2] = 0;
+  totalTime[2] = 3.0;
+  startTime[2] = millis() / 1000.0;
+  targetAngles[4] = 0;
+  totalTime[4] = 3.0;
+  startTime[4] = millis() / 1000.0;
+
+  targetAngles[0] = -30;
+  totalTime[0] = 3.0;
+  startTime[0] = millis() / 1000.0;
+  targetAngles[5] = 5;
+  totalTime[5] = 3.0;
+  startTime[5] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }
+  M5.Lcd.println("test end");
+}
+
+void toddler_to_init(){
+  targetAngles[1] = 60;
+  totalTime[1] = 2.0;
+  startTime[1] = millis() / 1000.0;
+  targetAngles[2] = -60;
+  totalTime[2] = 2.0;
+  startTime[2] = millis() / 1000.0;
+  targetAngles[4] = 60;
+  totalTime[4] = 2.0;
+  startTime[4] = millis() / 1000.0;
+  targetAngles[3] = -60;
+  totalTime[3] = 2.0;
+  startTime[3] = millis() / 1000.0;
+
+  targetAngles[0] = -60;
+  totalTime[0] = 2.0;
+  startTime[0] = millis() / 1000.0;
+  targetAngles[5] = -60;
+  totalTime[5] = 2.0;
+  startTime[5] = millis() / 1000.0;
+  updateCompleteFlag = false;
+  while (true){
+    if(updateCompleteFlag)
+      break;
+    else
+      delay(5);
+  }
+}
+
+void hooked_hand_demo(){
+  init_arm_downward();
+  delay(1000);
+  hooked_hold_arm();
+  delay(1200);
+  init_to_hooked();
+  delay(1200);
+  hooked_to_init();
+  delay(500);
+  init_arm_downward();
+}
+
+void grip_hand_demo(){
+  init_arm_downward();
+  delay(1000);
+  grip_hold_arm();
+  delay(1200);
+  init_to_grip();
+  delay(1200);
+  grip_to_init();
+  delay(500);
+  init_arm_downward();
+}
+
+void interlocked_fingers_demo(){
+  init_arm_downward();
+  delay(1000);
+  interlocked_fingers_arm();
+  delay(1200);
+  init_to_interlocked();
+  delay(1200);
+  interlocked_to_init();
+  delay(500);
+  init_arm_downward();
+}
+
+void toddler_hand_demo(){
+  init_arm_downward();
+  delay(1000);
+  toddler_hold_arm();
+  delay(1200);
+  init_to_toddler();
+  delay(1200);
+  toddler_to_init();
+  delay(300);
+  init_arm_downward();
+}
+
+void read_servo(){
+  for (int i = 1; i < 5; ++i) {
+    int pos = krs.getPos(i);
+    // USBSerial.println(pos);
+  }
+}
+
+void test(){
+  targetAngles[7] = 9591;
+  totalTime[7] = 2.0;
+  startTime[7] = millis() / 1000.0;  
+  targetAngles[8] = 7456;
+  totalTime[8] = 2.0;
+  startTime[8] = millis() / 1000.0;  
+  targetAngles[9] = 4833;
+  totalTime[9] = 2.0;
+  startTime[9] = millis() / 1000.0;  
+  targetAngles[10] = 7059;
+  totalTime[10] = 2.0;
+  startTime[10] = millis() / 1000.0;
   updateCompleteFlag = false;
   while (true){
     if(updateCompleteFlag)
@@ -211,7 +588,7 @@ void smoothUpdate(void *parameter) {
   // static float acceleration[NUM_SERVOS] = {0}; // 各サーボの加速度
   while(true){
     if(updateCompleteFlag){
-      delay(1);
+       delay(1);
       continue;
     }
     bool allServosUpdated = true; // 全てのサーボの更新が完了したか確認するためのフラグ
@@ -283,7 +660,7 @@ void smoothUpdate(void *parameter) {
 
 void setup()
 {
-  USBSerial.begin();
+  // USBSerial.begin();
   // === ATOMS3 === //
   M5.begin();
   M5.Lcd.setRotation(3);  // 画面向き設定（USB位置基準 0：下/ 1：右/ 2：上/ 3：左）
@@ -333,12 +710,20 @@ void loop()
       free_arm();
     }
   }else if(currentButtonState==SINGLE_CLICK){
-    test();
-    // reset_arm();
+    M5.Lcd.clear();
+    M5.Lcd.setCursor(0,0);
+    M5.Lcd.println("start");
+    delay(5000);
+    hooked_hand_demo();
+    delay(5000);
+    grip_hand_demo();
+    delay(5000);
+    interlocked_fingers_demo();
+    delay(5000);
+    toddler_hand_demo();
   }else if(currentButtonState==DOUBLE_CLICK){
-    init_to_open_hand();
-    wave_arm();
-    open_to_init_hand();
+
+    // grip_to_init();
   }
   currentButtonState = NOT_CHANGED;
   delay(100);
