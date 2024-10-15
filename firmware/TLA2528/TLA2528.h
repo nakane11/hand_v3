@@ -22,8 +22,7 @@ class TLA2528
 {
 public:
   TLA2528(uint8_t sda, uint8_t scl);
-  uint16_t readI2C(uint8_t slave_addr, uint8_t channel);
-private:
+  uint16_t readI2C(uint8_t slave_addr);
   void selectADCChannel(uint8_t slave_addr, uint8_t channel);
 };
 
