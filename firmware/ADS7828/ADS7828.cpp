@@ -3,7 +3,7 @@
 ADS7828::ADS7828(byte addr)
 {
   adc_addr = addr;
-  Wire.begin();
+  // Wire.begin();
 }
 
 int ADS7828::getValue(uint8_t channel)
