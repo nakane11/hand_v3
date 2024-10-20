@@ -4,6 +4,7 @@
 #include <button.h>
 #include <VacuumEsp.h>
 #include <ADS7828.h>
+#include <mode_manager.h>
 
 // === ICS === //
 const byte EN_PIN = 6;
@@ -11,7 +12,7 @@ const byte RX_PIN = 5;
 const byte TX_PIN = 38;
 const long BAUDRATE = 1250000;
 const int TIMEOUT = 20;
-const byte KRS_ID = 6;
+const uint8_t kondo_ids[5] = {0,1,2,3,5};
 IcsHardSerialClass krs(&Serial1, EN_PIN, BAUDRATE, TIMEOUT);
 VacuumEsp vacuum(krs);
 
@@ -34,6 +35,8 @@ bool updateCompleteFlag = true;  // 更新完了フラグ
 #define NUM_SENSOR_DEVICES 4
 ADS7828 ads[NUM_SENSOR_DEVICES] = {ADS7828(0x48), ADS7828(0x49), ADS7828(0x4A), ADS7828(0x4B)};
 uint8_t force_data[NUM_SENSOR_DEVICES*NUM_SENSOR_CHANNELS];
+
+ModeManager modeManager;
 
 void initialize_servo(){
   //futaba 初期姿勢をcurrentangleとtargetangleに入れてsmoothingせずに送る
@@ -102,7 +105,7 @@ void smoothUpdate(void *parameter) {
     // krs サーボの更新
     for (int i = 6; i < NUM_SERVOS; i++) {
       updateServoAngles(i, currentAngles, targetAngles, startTime, totalTime, allServosUpdated, [](int idx, float angle) {
-        krs.setPos(idx - 6, angle);
+        krs.setPos(kondo_ids[idx - 6], angle);
       });
     }
 
@@ -142,27 +145,26 @@ void setup(){
   initialize_servo();
   Wire.begin(8,7);
   xTaskCreatePinnedToCore(sensorUpdate, "Sensor Update", 2048, NULL, 22, NULL, 0);
-  xTaskCreatePinnedToCore(smoothUpdate, "Smooth Update", 2048, NULL, 20, NULL, 0);
+  xTaskCreatePinnedToCore(smoothUpdate, "Smooth Update", 2048, NULL, 8, NULL, 0);
   xTaskCreatePinnedToCore(ButtonTask, "Button Task", 2048, NULL, 24, NULL, 1);
   xTaskCreatePinnedToCore(VacuumEsp::pressureControlLoopWrapper, "Pressure control loop", 2048, &vacuum, 10, NULL, 0);
 }
 
 void loop(){
   M5.update();  //本体ボタン状態更新
-  vacuum.updatePressure(); //気圧更新
-  // M5.Lcd.setCursor(0,20);
-  // M5.Lcd.println(vacuum.averagePressure());
-  
+  modeManager.updateMode(force_data);
+  modeManager.processTask(targetAngles, totalTime, startTime, updateCompleteFlag);
   if(currentButtonState==PRESSED){
     if(vacuum.pressure_control_running){
-      M5.Lcd.setCursor(0,40);
-      M5.Lcd.println("release");
+      // M5.Lcd.setCursor(0,60);
+      // M5.Lcd.println("release");
       vacuum.release = true;
     }else{
-      M5.Lcd.setCursor(0,40);
-      M5.Lcd.println("vacuum");
+      // M5.Lcd.setCursor(0,60);
+      // M5.Lcd.println("vacuum");
       vacuum.pressure_control_running=true;
     }
+  }else if(currentButtonState==SINGLE_CLICK){
   }
   currentButtonState = NOT_CHANGED;
   delay(10);

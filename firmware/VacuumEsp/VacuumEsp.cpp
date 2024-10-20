@@ -127,8 +127,8 @@ void VacuumEsp::pressureControlLoop()
 
   while(true){
     updatePressure(); //気圧更新
-    M5.Lcd.setCursor(0,20);
-    M5.Lcd.println(averagePressure());
+    // M5.Lcd.setCursor(0,40);
+    // M5.Lcd.println(averagePressure());
     if(release){
       release_vacuum();
       release = false;
