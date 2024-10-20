@@ -126,6 +126,9 @@ void VacuumEsp::pressureControlLoop()
   float stop_pressure = -30.0;
 
   while(true){
+    updatePressure(); //気圧更新
+    M5.Lcd.setCursor(0,20);
+    M5.Lcd.println(averagePressure());
     if(release){
       release_vacuum();
       release = false;

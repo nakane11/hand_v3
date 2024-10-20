@@ -1,7 +1,7 @@
 #ifndef __vacuum_esp_h__
 #define __vacuum_esp_h__
 #include "Arduino.h"
-
+#include <M5AtomS3.h>
 #include <IcsHardSerialClass.h>
 
 #define V_OFFSET 1.65

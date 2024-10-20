@@ -5,10 +5,11 @@
 #include <WiFiHardware.h>
 #include <ros.h>
 #include <hand_v3/RawAngle.h>
+#include <std_msgs/Int8MultiArray.h>
 
 // === WiFi === //
-const char SSID[] ="xxxxxx";
-const char PASSWORD[] = "xxxxxx";
+const char SSID[] ="ist-hsr-2.4g";
+const char PASSWORD[] = "89sk389sk3";
 
 // === Servo === //
 const byte EN_PIN = 6;
@@ -58,6 +59,8 @@ void receiveKondoCommandSpeed(const hand_v3::RawAngle &msg)
 ros::Subscriber<hand_v3::RawAngle> futaba_sub("futaba/command_angle", &receiveFutabaCommandAngle);
 ros::Subscriber<hand_v3::RawAngle> kondo_angle_sub("kondo/command_angle", &receiveKondoCommandAngle);
 ros::Subscriber<hand_v3::RawAngle> kondo_speed_sub("kondo/command_speed", &receiveKondoCommandSpeed);
+std_msgs::Int8MultiArray id_msg;
+ros::Publisher id_pub("kondo/servo_ids", &id_msg);
 
 void setup()
 {
@@ -100,6 +103,7 @@ void setup()
   nh.subscribe(futaba_sub);
   nh.subscribe(kondo_angle_sub);
   nh.subscribe(kondo_speed_sub);
+  nh.advertise(id_pub);
   while(!nh.connected())
   {
     nh.spinOnce();
@@ -136,32 +140,28 @@ void loop()
 
   // sample_msg.data = 1;
   // sample_pub.publish(&sample_msg);
-  nh.spinOnce();
-  
-  int reId = krs.getID();
-  if (prevId != reId) {
-    M5.Lcd.clear();
-    M5.Lcd.setCursor(0, 0);
-    char log_msg[50];
-    sprintf(log_msg, "ID: %d", reId);
-    M5.Lcd.println(log_msg);
-    prevId = reId;
-  }
 
     // M5.Lcd.clear();
     // M5.Lcd.setCursor(0, 0);
-    std::vector<int> ids;
-    for (int i = 0; i < 18; ++i) {
-      int pos = krs.getPos(i);
-      // M5.Lcd.print(pos);
-      // M5.Lcd.print(' ' );
-      if (pos != -1) {
-        ids.push_back(i);
-      }
+  std::vector<int> ids;
+  for (int i = 0; i < 18; ++i) {
+    int pos = krs.getPos(i);
+    // M5.Lcd.print(pos);
+    // M5.Lcd.print(' ' );
+    if (pos != -1) {
+      ids.push_back(i);
     }
-    // char log_msg[50];
-    // sprintf(log_msg, "ID: %d", reId);
-      // M5.Lcd.println(log_msg);
+    }
+  id_msg.data_length =ids.size();
+  id_msg.data = new int8_t[id_msg.data_length];
+  
+  // idsの要素をint8_tにキャストしてid_msg.dataにコピー
+  for (size_t i = 0; i < ids.size(); ++i) {
+    id_msg.data[i] = static_cast<int8_t>(ids[i]);
+  }
+  id_pub.publish(&id_msg);
+  nh.spinOnce();
+  
     M5.Lcd.clear();
     M5.Lcd.setCursor(0, 0);
     M5.Lcd.print('t');
