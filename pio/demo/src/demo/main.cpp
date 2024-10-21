@@ -140,7 +140,7 @@ void setup(){
   Serial1.begin(BAUDRATE, SERIAL_8E1, RX_PIN, TX_PIN, false, TIMEOUT);
   krs.begin();
   for(int i=1;i<5;i++){
-    krs.setSpd(i,80);
+    krs.setSpd(i,120);
   }
   initialize_servo();
   Wire.begin(8,7);
@@ -167,5 +167,5 @@ void loop(){
   }else if(currentButtonState==SINGLE_CLICK){
   }
   currentButtonState = NOT_CHANGED;
-  delay(10);
+  delay(2);
 }

@@ -1,8 +1,12 @@
 #include <solo_mode.h>
 
 SoloMode::SoloMode(){
-    srand(static_cast<unsigned>(time(0)));
-    currentTask=setNewTask(SQUEEZING);
+  srand(static_cast<unsigned>(time(0)));
+  currentTask=setNewTask(SQUEEZING);
+}
+
+std::string SoloMode::updateMode(uint8_t* force_data) {
+  return "SoloMode";  // モードを変えない
 }
 
 unsigned long SoloMode::getRandomValue(unsigned long minValue, unsigned long maxValue) {
@@ -15,9 +19,9 @@ SoloModeTask SoloMode::setNewTask(SoloModeTask previous_task) {
     new_task = STAYING;
   }else{
     int randomIndex = rand() % 2 + 1; // 1か2を生成
-    // new_task = static_cast<SoloModeTask>(randomIndex);
-    new_task = SQUEEZING;
+    new_task = static_cast<SoloModeTask>(randomIndex);
   }
+
   if(new_task==STAYING){
     previousMillis = millis(); // 経過時間のリセット
     duration = getRandomValue(5000, 15000); // 新しいdurationを設定
@@ -26,9 +30,15 @@ SoloModeTask SoloMode::setNewTask(SoloModeTask previous_task) {
     count = 2*getRandomValue(1,3)+1;
     M5.Lcd.setCursor(0,20);
     M5.Lcd.println(count);     
-  }else if(new_task==TAPPING){
-    //move arm
-    count = getRandomValue(3,15)+1;
+  // }else if(new_task==TAPPING){
+  //   //move arm
+  //   count = getRandomValue(3,15)+1;
+  }else if(new_task==WAVING){
+    //腕の移動+往復+初期位置に戻る
+    total_count = 2*getRandomValue(2,4)+2;
+    count = 0;
+    M5.Lcd.setCursor(0,20);
+    M5.Lcd.println(total_count);
   }
   M5.Lcd.setCursor(0,0);
   M5.Lcd.println(new_task);
@@ -49,56 +59,39 @@ void SoloMode::processTask(int* targetAngles, float* totalTime, float* startTime
       if(count==0){
         currentTask=setNewTask(currentTask);
       }else{
-        // next target 偶数なら閉じる，奇数なら開く
+        //偶数なら閉じる，奇数なら開く
         if(count%2==0){
-          targetAngles[1] = -10;
-          totalTime[1] = 1.0;
-          startTime[1] = millis() / 1000.0;
-          targetAngles[2] = 15;
-          totalTime[2] = 1.0;
-          startTime[2] = millis() / 1000.0;
-          targetAngles[4] = -15;
-          totalTime[4] = 1.0;
-          startTime[4] = millis() / 1000.0;
-          targetAngles[3] = 10;
-          totalTime[3] = 1.0;
-          startTime[3] = millis() / 1000.0;
-          targetAngles[0] = 0;
-          totalTime[0] = 1.0;
-          startTime[0] = millis() / 1000.0;
-          targetAngles[5] = 0;
-          totalTime[5] = 1.0;
-          startTime[5] = millis() / 1000.0;          
+          pose.squeezing_close_hand(targetAngles, totalTime, startTime);
         }else if(count%2==1){
-          targetAngles[1] = 60;
-          totalTime[1] = 1.0;
-          startTime[1] = millis() / 1000.0;
-          targetAngles[2] = -60;
-          totalTime[2] = 1.0;
-          startTime[2] = millis() / 1000.0;
-          targetAngles[4] = 60;
-          totalTime[4] = 1.0;
-          startTime[4] = millis() / 1000.0;
-          targetAngles[3] = -60;
-          totalTime[3] = 1.0;
-          startTime[3] = millis() / 1000.0;
-
-          targetAngles[0] = -60;
-          totalTime[0] = 1.0;
-          startTime[0] = millis() / 1000.0;
-          targetAngles[5] = -60;
-          totalTime[5] = 1.0;
-          startTime[5] = millis() / 1000.0;          
+          pose.squeezing_open_hand(targetAngles, totalTime, startTime);
         }
         updateCompleteFlag = false;
       }
     }
-  }else if(currentTask==TAPPING){
-    //send angle vector
-    count--;
-    if(count==0){
-      currentTask=setNewTask(currentTask);
+  }else if(currentTask==WAVING){
+    M5.Lcd.setCursor(0,40);
+    M5.Lcd.println(count);
+    if(updateCompleteFlag){
+      if(count==0){
+        pose.waving_initial_arm(targetAngles, totalTime, startTime);
+      }else if(count==total_count-1){
+        pose.waving_straight(targetAngles, totalTime, startTime);
+      }else if(count==total_count){
+        currentTask=setNewTask(currentTask);
+      }else if(count%2==1){
+        pose.waving_left(targetAngles, totalTime, startTime);
+      }else if(count%2==0){
+        pose.waving_right(targetAngles, totalTime, startTime);
+      }
+      updateCompleteFlag = false;
+      count++;
     }
+  // }else if(currentTask==TAPPING){
+  //   //send angle vector
+  //   count--;
+  //   if(count==0){
+  //     currentTask=setNewTask(currentTask);
+  //   }
   }  
 }
 
