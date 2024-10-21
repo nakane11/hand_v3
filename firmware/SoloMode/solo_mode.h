@@ -11,6 +11,7 @@ enum SoloModeTask {
                    STAYING,
                    SQUEEZING,
                    WAVING,
+                   BECKONING,
                    TAPPING
 };
 

@@ -18,7 +18,7 @@ SoloModeTask SoloMode::setNewTask(SoloModeTask previous_task) {
   if(previous_task!=STAYING){
     new_task = STAYING;
   }else{
-    int randomIndex = rand() % 2 + 1; // 1か2を生成
+    int randomIndex = rand() % 3 + 1; // 1か2を生成
     new_task = static_cast<SoloModeTask>(randomIndex);
   }
 
@@ -36,6 +36,12 @@ SoloModeTask SoloMode::setNewTask(SoloModeTask previous_task) {
   }else if(new_task==WAVING){
     //腕の移動+往復+初期位置に戻る
     total_count = 2*getRandomValue(2,4)+2;
+    count = 0;
+    M5.Lcd.setCursor(0,20);
+    M5.Lcd.println(total_count);
+  }else if(new_task==BECKONING){
+    //腕の移動+往復
+    total_count = 2*getRandomValue(2,3)+2;
     count = 0;
     M5.Lcd.setCursor(0,20);
     M5.Lcd.println(total_count);
@@ -82,6 +88,22 @@ void SoloMode::processTask(int* targetAngles, float* totalTime, float* startTime
         pose.waving_left(targetAngles, totalTime, startTime);
       }else if(count%2==0){
         pose.waving_right(targetAngles, totalTime, startTime);
+      }
+      updateCompleteFlag = false;
+      count++;
+    }
+  }else if(currentTask==BECKONING){
+    M5.Lcd.setCursor(0,40);
+    M5.Lcd.println(count);
+    if(updateCompleteFlag){
+      if(count==0){
+        pose.beckoning_initial_arm(targetAngles, totalTime, startTime);
+      }else if(count==total_count){
+        currentTask=setNewTask(currentTask);
+      }else if(count%2==1){
+        pose.beckoning_inside(targetAngles, totalTime, startTime);
+      }else if(count%2==0){
+        pose.beckoning_outside(targetAngles, totalTime, startTime);
       }
       updateCompleteFlag = false;
       count++;
